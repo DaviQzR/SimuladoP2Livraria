@@ -196,6 +196,12 @@ ORDER BY 'Codigo da Compra'
 
 
 --12) Consultar o nome da editora e a média de preços dos livros em estoque.Ordenar pela Média de Valores ascendente.
+SELECT edi.nome AS 'Nome da Editora', 
+       AVG(est.valor) AS 'Média de Valores'
+FROM editora edi
+JOIN estoque est ON edi.codigo = est.codEditora
+GROUP BY edi.nome
+ORDER BY 'Média de Valores' ASC
 
 --13) Consultar o nome do Livro, a quantidade em estoque o nome da editora, o site da editora (Caso o site tenha mais de 10 dígitos, remover o www.), criar uma coluna status onde:	
 
@@ -204,12 +210,46 @@ ORDER BY 'Codigo da Compra'
 	--Caso tenha mais de 10 livros em estoque, escrever Estoque Suficiente
 	--A Ordenação deve ser por Quantidade ascendente
 
+SELECT est.nome AS 'Nome do Livro', 
+       est.quantidade AS 'Quantidade em Estoque', 
+       edi.nome AS 'Nome da Editora', 
+     CASE 
+           WHEN LEN(edi.site) > 10 THEN REPLACE(edi.site, 'www.', '')
+           ELSE edi.site 
+       END AS 'Site da Editora',
+     CASE 
+           WHEN est.quantidade < 5 THEN 'Produto em Ponto de Pedido'
+           WHEN est.quantidade BETWEEN 5 AND 10 THEN 'Produto Acabando'
+           ELSE 'Estoque Suficiente'
+      END AS 'Status'
+FROM estoque est
+JOIN editora edi ON est.codEditora = edi.codigo
+ORDER BY 'Quantidade em Estoque' ASC
+
 --14) Para montar um relatório, é necessário montar uma consulta com a seguinte saída: Código do Livro, Nome do Livro, Nome do Autor, Info Editora (Nome da Editora + Site) de todos os livros	
 	 -- Só pode concatenar sites que não são nulos
+SELECT est.codigo AS 'Código do Livro',
+       est.nome AS 'Nome do Livro',
+       aut.nome AS 'Nome do Autor',
+       CONCAT(edi.nome, 
+              CASE WHEN edi.site IS NOT NULL THEN ' - ' + edi.site ELSE '' END
+       ) AS 'Info Editora'
+FROM estoque est
+JOIN autor aut ON est.codAutor = aut.codigo
+JOIN editora edi ON est.codEditora = edi.codigo
+
 
 --15) Consultar Codigo da compra, quantos dias da compra até hoje e quantos meses da compra até hoje	
-
+SELECT comp.codigo AS 'Código da Compra',
+       DATEDIFF(DAY, comp.dataCompra, GETDATE()) AS 'Dias desde a Compra',
+       DATEDIFF(MONTH, comp.dataCompra, GETDATE()) AS 'Meses desde a Compra'
+FROM compra comp
 --16) Consultar o código da compra e a soma dos valores gastos das compras que somam mais de 200.00	
+SELECT codigo AS 'Código da Compra',
+       SUM(valor) AS 'Soma dos Valores Gastos'
+FROM compra
+GROUP BY codigo
+HAVING SUM(valor) > 200.00
 
 SELECT * FROM editora
 SELECT * FROM autor
